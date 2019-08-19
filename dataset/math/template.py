@@ -78,35 +78,62 @@ def recover_equations(equations, variable_number_dict):
         equations_answer.append(equation_answer)
 
 
-def is_numeric(s):
+def _is_operand(s):
+    if is_numeric(s) or s == "%":
+        return True
+    else:
+        return False
+
+
+def _is_numeric(s):
     """
     Determine whether the string matches a integer or a float number.
     """
-    value = re.compile(r'[-+]?\d*\.{0,1}\d+%{0,1}$')
-    result = value.match(s)
+    # integer_compiler = re.compile(r"[-+]?\d+")
+    # float_complier = re.compile(r"[-+]?\d*\.{0,1}\d+")
+    float_compiler_with_percent = re.compile(r"^[-+]?\d*\.{0,1}\d+%{0,1}$")
+    result = float_compiler_with_percent.match(s)
     if result:
         return True
     else:
         return False
 
 
-def is_fraction(s):
+def _is_fraction(s):
     """
     Determine whether the string matches a fraction.
     :param s:
     :return:
     """
+    fraction_compiler = re.compile(r"^\({0,1}\d+/\d+\){0,1}$")
+    result = fraction_compiler.match(s)
+    if result:
+        return True
+    else:
+        return False
 
 
-def func_test():
-    assert is_numeric("14") == True
-    assert is_numeric("-.5") == True
-    assert is_numeric("14.20") == True
-    assert is_numeric("+14.20") == True
-    assert is_numeric("-14.20") == True
-    assert is_numeric("+14.20%") == True
-    assert is_numeric("14.2%") == True
+def _test_func():
+    # _test_is_numeric()
+    _test_is_fraction()
+
+
+def _test_is_numeric():
+    assert _is_numeric("14")
+    assert _is_numeric("-.5")
+    assert _is_numeric("14.20")
+    assert _is_numeric("+14.20")
+    assert _is_numeric("-14.20")
+    assert _is_numeric("+14.20%")
+    assert _is_numeric("14.2%")
+
+
+def _test_is_fraction():
+    assert _is_fraction("1/5")
+    assert _is_fraction("(2/17)")
+    assert _is_fraction("(1/17)")
 
 
 if __name__ == "__main__":
-    func_test()
+    print()
+    _test_func()

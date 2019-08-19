@@ -439,7 +439,7 @@ class MathWordProblem:
         return question_list, options_list, rationale_list, correct_list
 
 
-def test_alg(filename):
+def _test_alg(filename):
     if filename is not None and len(filename) > 0:
         alg = MathWordProblem()
         alg.read_alg(filename)
@@ -460,7 +460,7 @@ def test_alg(filename):
                 print(len(solutions))
 
 
-def test_il(filename):
+def _test_il(filename):
     if filename is not None and len(filename) > 0:
         alg = MathWordProblem()
         alg.read_il(filename)
@@ -484,7 +484,7 @@ def test_il(filename):
                 print(len(alignments))
 
 
-def test_mawps(filename):
+def _test_mawps(filename):
     if filename is not None and len(filename) > 0:
         alg = MathWordProblem()
         alg.read_mawps(filename)
@@ -511,7 +511,7 @@ def test_mawps(filename):
                 print(len(lqueryvars))
 
 
-def test_arith(filename):
+def _test_arith(filename):
     if filename is not None and len(filename) > 0:
         alg = MathWordProblem()
         alg.read_arith(filename)
@@ -541,7 +541,7 @@ def test_arith(filename):
                 print(len(rates))
 
 
-def test_draw(filename):
+def _test_draw(filename):
     if filename is not None and len(filename) > 0:
         alg = MathWordProblem()
         alg.read_draw(filename)
@@ -573,7 +573,7 @@ def test_draw(filename):
                     print(equiv[0])
 
 
-def test_dolphin(filename):
+def _test_dolphin(filename):
     if filename is not None and len(filename) > 0:
         alg = MathWordProblem()
         alg.read_dolphin(filename)
@@ -600,7 +600,7 @@ def test_dolphin(filename):
                 print(len(ans_simple))
 
 
-def test_math(filename):
+def _test_math(filename):
     if filename is not None and len(filename) > 0:
         alg = MathWordProblem()
         alg.read_math(filename)
@@ -621,7 +621,7 @@ def test_math(filename):
                 print(ans)
 
 
-def test_aqua(filename):
+def _test_aqua(filename):
     if filename is not None and len(filename) > 0:
         alg = MathWordProblem()
         alg.read_aqua(filename)
@@ -641,27 +641,28 @@ def test_aqua(filename):
                 print(correct)
 
 
-def read_test():
-    # test_alg(r"D:\dataset\AI2-395\AddSub.json") # AI2
-    # test_alg(r"D:\dataset\MaWPS\AddSub.json") # AI2
-    # test_alg(r"D:\dataset\Alg-514\questions.json") # Alg-514
-    # test_alg(r"D:\dataset\MaWPS\Kushman.json") # Alg-514
-    # test_alg(r"D:\dataset\SingleEQ\questions.json")  # SingleEQ
-    # test_alg(r"D:\dataset\MaWPS\SingleEQ.json") # SingleEQ
-    # test_il(r"D:\dataset\IL-562\questions.json")  # IL-562
-    # test_il(r"D:\dataset\MaWPS\SingleOp.json") # IL-562
-    # test_il(r"D:\dataset\Commoncore-600\questions.json")  # Commoncore-600
-    # test_il(r"D:\dataset\MaWPS\MultiArith.json")  # Commoncore-600
-    test_mawps(r"D:\dataset\MaWPS\AllWithEquations.json")  # MAWPS
-    # test_arith(r"D:\dataset\AllArith\questions.json")  # AllArith
-    # test_draw(r"D:\dataset\DRAW-1K\draw.json")  # Draw-1K
-    # test_dolphin(r"D:\dataset\dolphin\dolphin-number_word_std\number_word_std.dev.json")  # Dolphin1878
-    # test_dolphin(r"D:\dataset\dolphin\dolphin18k\dev_cleaned.json")  # Dolphin18k
-    # test_math(r"D:\dataset\Math23K\Math23k_test.json")  # Math23k
-    # test_math(r"D:\dataset\Math23K\Math23k_train.json")  # Math23k
-    # test_aqua(r"D:\dataset\AQUA-RAT\dev.json")  # AQUA-RAT
+def _test_read():
+    # _test_alg(r"D:\dataset\AI2-395\AddSub.json") # AI2
+    # _test_alg(r"D:\dataset\MaWPS\AddSub.json") # AI2
+    # _test_alg(r"D:\dataset\Alg-514\questions.json") # Alg-514
+    # _test_alg(r"D:\dataset\MaWPS\Kushman.json") # Alg-514
+    # _test_alg(r"D:\dataset\SingleEQ\questions.json")  # SingleEQ
+    # _test_alg(r"D:\dataset\MaWPS\SingleEQ.json") # SingleEQ
+    # _test_il(r"D:\dataset\IL-562\questions.json")  # IL-562
+    # _test_il(r"D:\dataset\MaWPS\SingleOp.json") # IL-562
+    # _test_il(r"D:\dataset\Commoncore-600\questions.json")  # Commoncore-600
+    # _test_il(r"D:\dataset\MaWPS\MultiArith.json")  # Commoncore-600
+    _test_mawps(r"D:\dataset\MaWPS\AllWithEquations.json")  # MAWPS
+    # _test_arith(r"D:\dataset\AllArith\questions.json")  # AllArith
+    # _test_draw(r"D:\dataset\DRAW-1K\draw.json")  # Draw-1K
+    # _test_dolphin(r"D:\dataset\dolphin\dolphin-number_word_std\number_word_std.dev.json")  # Dolphin1878
+    # _test_dolphin(r"D:\dataset\dolphin\dolphin18k\dev_cleaned.json")  # Dolphin18k
+    # _test_math(r"D:\dataset\Math23K\Math23k_test.json")  # Math23k
+    # _test_math(r"D:\dataset\Math23K\Math23k_train.json")  # Math23k
+    # _test_aqua(r"D:\dataset\AQUA-RAT\dev.json")  # AQUA-RAT
 
 
 if __name__ == "__main__":
-    read_test()
+    print()
+    # _test_read()
     # generateDataset(sys.argv[1], sys.argv[2], sys.argv[3])
