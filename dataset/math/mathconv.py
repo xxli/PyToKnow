@@ -15,7 +15,7 @@ def get_question_template(question):
     number_variable_dict = {}
     variable_number_dict = {}
     for word in words:
-        print(word)
+        # print(word)
         if is_numeric(word) and word in number_variable_dict:
             variable = "number_" + str(index)
             number_variable_dict[word] = variable
@@ -79,11 +79,34 @@ def recover_equations(equations, variable_number_dict):
 
 
 def is_numeric(s):
-    """ Determine whether the str matches a integer or a float number.
     """
-    value = re.compile(r'^[-+]?\d*\.{0,1}\d+$')
+    Determine whether the string matches a integer or a float number.
+    """
+    value = re.compile(r'[-+]?\d*\.{0,1}\d+%{0,1}$')
     result = value.match(s)
     if result:
         return True
     else:
         return False
+
+
+def is_fraction(s):
+    """
+    Determine whether the string matches a fraction.
+    :param s:
+    :return:
+    """
+
+
+def func_test():
+    assert is_numeric("14") == True
+    assert is_numeric("-.5") == True
+    assert is_numeric("14.20") == True
+    assert is_numeric("+14.20") == True
+    assert is_numeric("-14.20") == True
+    assert is_numeric("+14.20%") == True
+    assert is_numeric("14.2%") == True
+
+
+if __name__ == "__main__":
+    func_test()

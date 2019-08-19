@@ -4,7 +4,7 @@ import re
 
 class AlgQuestion:
     """
-    Class for math word problem, including AI2-395, Alg-514, SingleEQ.
+    Class for math word problem, including AI2-395, Alg-514, and SingleEQ dataset.
     AI2数学题的类。
     """
 
@@ -21,7 +21,7 @@ class AlgQuestion:
 
 class ILQuestion(AlgQuestion):
     """
-    Class for math word problem, including IL-562, Commoncore-600.
+    Class for math word problem, including IL-562 and Commoncore-600 dataset.
     """
 
     def __init__(self):
@@ -29,9 +29,20 @@ class ILQuestion(AlgQuestion):
         self.alignments = []
 
 
+class MAWPSQuestion(AlgQuestion):
+    """
+    Class for math word problem, including MAWPS dataset.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.alignments = []
+        self.lqueryvars = []
+
+
 class ArithQuestion(ILQuestion):
     """
-    Class for math word problem, including AllArith.
+    Class for math word problem, including AllArith dataset.
     """
 
     def __init__(self):
@@ -103,7 +114,7 @@ class Alignment:
         self.token_id = parsed_json["TokenId"]
 
 
-class Alg:
+class MathWordProblem:
 
     def __init__(self):
         self.mwp_list = list()
@@ -141,6 +152,28 @@ class Alg:
                 mwp.equations = question_json['lEquations']
                 mwp.solutions = question_json['lSolutions']
                 mwp.alignments = question_json['lAlignments']
+                self.mwp_list.append(mwp)
+
+    def read_mawps(self, filename):
+        """
+        read IL-600 dataset
+
+        return: mwp list
+        """
+        with open(filename, 'r', encoding="UTF-8") as file:
+            question_lines = file.read()
+            questions_json = json.loads(question_lines)
+            for question_json in questions_json:
+                mwp = MAWPSQuestion()
+                mwp.index = question_json['iIndex']
+                mwp.question = question_json['sQuestion']
+                mwp.equations = question_json['lEquations']
+                mwp.solutions = question_json['lSolutions']
+                if 'lAlignments' in question_json:
+                    mwp.alignments = question_json['lAlignments']
+                if 'lQueryVars' in question_json:
+                    mwp.lqueryvars = question_json['lQueryVars']
+
                 self.mwp_list.append(mwp)
 
     def read_arith(self, filename):
@@ -277,6 +310,27 @@ class Alg:
         return index_list, question_list, equations_list, solutions_list, \
                alignments_list
 
+    def get_mawps_list(self):
+        """
+
+        :return: index_list, question_list, equation_list, solution_list
+        """
+        index_list = []
+        question_list = []
+        equations_list = []
+        solutions_list = []
+        alignments_list = []
+        lqueryvars_list = []
+        for mwp in self.mwp_list:
+            index_list.append(mwp.index)
+            question_list.append(mwp.question)
+            equations_list.append(mwp.equations)
+            solutions_list.append(mwp.solutions)
+            alignments_list.append(mwp.alignments)
+            lqueryvars_list.append(mwp.lqueryvars)
+        return index_list, question_list, equations_list, solutions_list, \
+               alignments_list, lqueryvars_list
+
     def get_arith_list(self):
         """
 
@@ -387,7 +441,7 @@ class Alg:
 
 def test_alg(filename):
     if filename is not None and len(filename) > 0:
-        alg = Alg()
+        alg = MathWordProblem()
         alg.read_alg(filename)
         index_list, question_list, equations_list, solutions_list = \
             alg.get_alg_list()
@@ -408,7 +462,7 @@ def test_alg(filename):
 
 def test_il(filename):
     if filename is not None and len(filename) > 0:
-        alg = Alg()
+        alg = MathWordProblem()
         alg.read_il(filename)
         index_list, question_list, equations_list, solutions_list, \
         alignments_list = alg.get_il_list()
@@ -430,9 +484,36 @@ def test_il(filename):
                 print(len(alignments))
 
 
+def test_mawps(filename):
+    if filename is not None and len(filename) > 0:
+        alg = MathWordProblem()
+        alg.read_mawps(filename)
+        index_list, question_list, equations_list, solutions_list, \
+        alignments_list, lqueryvars_list = alg.get_mawps_list()
+        print("question number:", len(index_list))
+        for i in range(len(index_list)):
+            index = index_list[i]
+            question = question_list[i]
+            equations = equations_list[i]
+            solutions = solutions_list[i]
+            alignments = alignments_list[i]
+            lqueryvars = lqueryvars_list[i]
+            if i in [0,  395, 2245, 2845, 3353]:
+                print(index)
+                print(question)
+                print(equations)
+                print(len(equations))
+                print(solutions)
+                print(len(solutions))
+                print(alignments)
+                print(len(alignments))
+                print(lqueryvars)
+                print(len(lqueryvars))
+
+
 def test_arith(filename):
     if filename is not None and len(filename) > 0:
-        alg = Alg()
+        alg = MathWordProblem()
         alg.read_arith(filename)
         index_list, question_list, equations_list, solutions_list, \
             alignments_list, quants_list, rates_list = alg.get_arith_list()
@@ -462,7 +543,7 @@ def test_arith(filename):
 
 def test_draw(filename):
     if filename is not None and len(filename) > 0:
-        alg = Alg()
+        alg = MathWordProblem()
         alg.read_draw(filename)
         index_list, question_list, equations_list, solutions_list, \
         alignment_list, template_list, equiv_list = alg.get_draw_list()
@@ -494,7 +575,7 @@ def test_draw(filename):
 
 def test_dolphin(filename):
     if filename is not None and len(filename) > 0:
-        alg = Alg()
+        alg = MathWordProblem()
         alg.read_dolphin(filename)
         id_list, text_list, \
             equations_list, ans_list, ans_simple_list = alg.get_dolphin_list()
@@ -521,7 +602,7 @@ def test_dolphin(filename):
 
 def test_math(filename):
     if filename is not None and len(filename) > 0:
-        alg = Alg()
+        alg = MathWordProblem()
         alg.read_math(filename)
         id_list, original_text_list, segmented_text_list, \
             equation_list, ans_list = alg.get_math_list()
@@ -542,7 +623,7 @@ def test_math(filename):
 
 def test_aqua(filename):
     if filename is not None and len(filename) > 0:
-        alg = Alg()
+        alg = MathWordProblem()
         alg.read_aqua(filename)
         question_list, options_list, rationale_list, correct_list \
             = alg.get_aqua_list()
@@ -571,13 +652,14 @@ def read_test():
     # test_il(r"D:\dataset\MaWPS\SingleOp.json") # IL-562
     # test_il(r"D:\dataset\Commoncore-600\questions.json")  # Commoncore-600
     # test_il(r"D:\dataset\MaWPS\MultiArith.json")  # Commoncore-600
+    test_mawps(r"D:\dataset\MaWPS\AllWithEquations.json")  # MAWPS
     # test_arith(r"D:\dataset\AllArith\questions.json")  # AllArith
     # test_draw(r"D:\dataset\DRAW-1K\draw.json")  # Draw-1K
     # test_dolphin(r"D:\dataset\dolphin\dolphin-number_word_std\number_word_std.dev.json")  # Dolphin1878
     # test_dolphin(r"D:\dataset\dolphin\dolphin18k\dev_cleaned.json")  # Dolphin18k
     # test_math(r"D:\dataset\Math23K\Math23k_test.json")  # Math23k
     # test_math(r"D:\dataset\Math23K\Math23k_train.json")  # Math23k
-    test_aqua(r"D:\dataset\AQUA-RAT\dev.json")  # Math23k
+    # test_aqua(r"D:\dataset\AQUA-RAT\dev.json")  # AQUA-RAT
 
 
 if __name__ == "__main__":
