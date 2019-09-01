@@ -1,6 +1,6 @@
 import re
 
-from dataset.math.mwp import MathWordProblem
+from ptk.dataset.math.mwp import MathWordProblem
 
 number_prefix = "NUMBER"
 simple_operator_list = ["=", "+", "-", "*", "/"]
