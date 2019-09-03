@@ -1,5 +1,11 @@
 import re
 
+from ptkn.dataset.math.mwp import MathWordProblem
+
+number_prefix = "NUMBER"
+unknown_suffix = "x"
+simple_operator_list = ["=", "+", "-", "*", "/"]
+
 
 def get_question_template(question):
     """Generate question template from original question,
@@ -16,8 +22,8 @@ def get_question_template(question):
     variable_number_dict = {}
     for word in words:
         # print(word)
-        if is_numeric(word) and word in number_variable_dict:
-            variable = "number_" + str(index)
+        if _is_operand(word) and word not in number_variable_dict:
+            variable = number_prefix + str(index)
             number_variable_dict[word] = variable
             variable_number_dict[variable] = word
             index += 1
@@ -41,14 +47,14 @@ def get_equations_template(equations, number_variable_dict):
         words = equation.split(" ")
         start = 0
         for word in words:
-            if is_numeric(word):
-                if word not in number_variable_dict:
+            if _is_operand(word):
+                if word in number_variable_dict:
                     words[start] = number_variable_dict[word]
                 else:
                     raise Exception("equation " + equation +
                                     " contains numbers which are not indexed")
             if word == 'x' or word == 'X':
-                words[start] = "number_x"
+                words[start] = number_prefix + "x"
             start += 1
         equation_template = " ".join(words)
         equations_template.append(equation_template)
@@ -66,12 +72,12 @@ def recover_equations(equations, variable_number_dict):
         words = equation.split(" ")
         start = 0
         for word in words:
-            if variable_number_dict[word] is not None:
+            if word in variable_number_dict:
                 words[start] = variable_number_dict[word]
             else:
                 raise Exception("equation " + equation +
                                 " contains variables which are not indexed")
-            if word == 'number_x':
+            if word == number_prefix + "x":
                 words[start] = "x"
             start += 1
         equation_answer = " ".join(words)
@@ -79,7 +85,12 @@ def recover_equations(equations, variable_number_dict):
 
 
 def _is_operand(s):
-    if is_numeric(s) or s == "%":
+    """
+    determine whether s is an operand
+    :param s:
+    :return:
+    """
+    if _is_numeric(s) or s == "%" or _is_fraction(s):
         return True
     else:
         return False
@@ -114,7 +125,11 @@ def _is_fraction(s):
 
 
 def _test_func():
-    # _test_is_numeric()
+    """
+    test whether the functions in this python file is working correctly.
+    :return:
+    """
+    _test_is_numeric()
     _test_is_fraction()
 
 
@@ -126,14 +141,47 @@ def _test_is_numeric():
     assert _is_numeric("-14.20")
     assert _is_numeric("+14.20%")
     assert _is_numeric("14.2%")
+    print("_test_is_numeric() no error.")
 
 
 def _test_is_fraction():
     assert _is_fraction("1/5")
     assert _is_fraction("(2/17)")
     assert _is_fraction("(1/17)")
+    print("_test_is_fraction() no error.")
+
+
+def _test_equation_template():
+    filename = r"D:\dataset\MaWPS\AllWithEquations.json"
+    if filename is not None and len(filename) > 0:
+        alg = MathWordProblem()
+        alg.read_mawps(filename)
+        index_list, question_list, equations_list, solutions_list, \
+        alignments_list, lqueryvars_list = alg.get_mawps_list()
+        question_number = len(index_list)
+        print("question number:", question_number)
+        for i in range(question_number):
+            index = index_list[i]
+            question = question_list[i]
+            equations = equations_list[i]
+            solutions = solutions_list[i]
+            alignments = alignments_list[i]
+            lqueryvars = lqueryvars_list[i]
+            print("question: ", question)
+            question_template, number_variable_dict, variable_number_dict = get_question_template(question)
+            print("question_template: ", question_template)
+            print("number_variable_dict: ", number_variable_dict)
+            print("variable_number_dict: ", variable_number_dict)
+            print("equations: ", equations)
+            equations_template = get_equations_template(equations, number_variable_dict)
+            print("equations: ", equations_template)
+            new_equations = recover_equations(equations_template, variable_number_dict)
+            print("new_equations: ", new_equations)
+            if i == 0:
+                break
 
 
 if __name__ == "__main__":
     print()
-    _test_func()
+    # _test_func()
+    _test_equation_template()

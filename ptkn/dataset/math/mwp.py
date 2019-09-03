@@ -539,6 +539,8 @@ def _test_arith(filename):
                 print(len(quants))
                 print(rates)
                 print(len(rates))
+    else:
+        print("no file is found.")
 
 
 def _test_draw(filename):
@@ -664,5 +666,4 @@ def _test_read():
 
 if __name__ == "__main__":
     print()
-    # _test_read()
-    # generateDataset(sys.argv[1], sys.argv[2], sys.argv[3])
+    _test_read()
