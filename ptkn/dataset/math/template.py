@@ -4,13 +4,12 @@ from ptkn.dataset.math.mwp import MathWordProblem
 
 number_prefix = "NUMBER"
 unknown_suffix = "x"
-simple_operator_list = ["=", "+", "-", "*", "/"]
 
 
-def get_question_template(question):
+def extract_question_number(question):
     """Generate question template from original question,
     including changing the number into number[x] format.
-    从原始问题生成问题模板，包括修改数字为number[x]的形式。
+    从原始问题修改数字为number[x]的形式，并生成问题模板。
 
     :param question:
     :return:
@@ -36,7 +35,7 @@ def get_question_template(question):
 def get_equations_template(equations, number_variable_dict):
     """Replace the numbers in equation to variables according to
     given number_variable_dict.
-    根据number_variable_dict结构，按方程中的数字替换为对应的变量。
+    根据number_variable_dict结构，将方程中的数字替换为对应的变量。
 
     :param equations:
     :param number_variable_dict:
@@ -47,14 +46,24 @@ def get_equations_template(equations, number_variable_dict):
         words = equation.split(" ")
         start = 0
         for word in words:
-            if _is_operand(word):
+            if _is_operand(word):    # 1. if it is an operand. 如果是操作数。
                 if word in number_variable_dict:
                     words[start] = number_variable_dict[word]
                 else:
-                    raise Exception("equation " + equation +
-                                    " contains numbers which are not indexed")
-            if word == 'x' or word == 'X':
-                words[start] = number_prefix + "x"
+                    _found_variable= None
+                    for number in number_variable_dict.keys():
+                        if _number_match(word, number):
+                            _found_variable = number_variable_dict[number]
+                            break
+                    if _found_variable is not None:
+                        words[start] = _found_variable
+                    else:
+                        raise Exception("equation " + equation +
+                                        " contains numbers which are not indexed")
+            elif _is_operator(word):  # 2. If it is an operator. 如果是操作符。
+                continue
+            else:                     # 3. Otherwise, it is variable. 如果是其他，则默认为变量。
+                words[start] = number_prefix + word
             start += 1
         equation_template = " ".join(words)
         equations_template.append(equation_template)
@@ -63,7 +72,7 @@ def get_equations_template(equations, number_variable_dict):
 
 def recover_equations(equations, variable_number_dict):
     """
-    根据variable_number_dict结构，按方程中的变量替换为对应的数字。
+    根据variable_number_dict，将方程中的变量替换为对应的数字。
 
     :return:
     """
@@ -72,13 +81,11 @@ def recover_equations(equations, variable_number_dict):
         words = equation.split(" ")
         start = 0
         for word in words:
-            if word in variable_number_dict:
+            if word in variable_number_dict:      # 1. If word is an variable, 如果词在变量-数值词典里。
                 words[start] = variable_number_dict[word]
-            else:
-                raise Exception("equation " + equation +
-                                " contains variables which are not indexed")
-            if word == number_prefix + "x":
-                words[start] = "x"
+
+            elif word.startswith(number_prefix):  # 2. If word是待求解变量，
+                words[start] = word.replace(number_prefix, "")
             start += 1
         equation_answer = " ".join(words)
         equations_answer.append(equation_answer)
@@ -122,6 +129,23 @@ def _is_fraction(s):
         return True
     else:
         return False
+
+
+def _is_operator(s):
+    """
+    Determine whether the string is an operator.
+    :param s:
+    :return:
+    """
+    simple_operator_list = ["=", "+", "-", "*", "/"]
+    if s in simple_operator_list:
+        return True
+    else:
+        return False
+
+
+def _number_match(number, word):
+    return False
 
 
 def _test_func():
@@ -168,7 +192,7 @@ def _test_equation_template():
             alignments = alignments_list[i]
             lqueryvars = lqueryvars_list[i]
             print("question: ", question)
-            question_template, number_variable_dict, variable_number_dict = get_question_template(question)
+            question_template, number_variable_dict, variable_number_dict = extract_question_number(question)
             print("question_template: ", question_template)
             print("number_variable_dict: ", number_variable_dict)
             print("variable_number_dict: ", variable_number_dict)
