@@ -6,13 +6,7 @@ import shutil
 import torch
 import torch.nn as nn
 
-current_directory = os.path.dirname(os.path.abspath(__file__))
-root_path = os.path.abspath(os.path.dirname(current_directory) + os.path.sep + ".")
-sys.path.append(root_path)
-from data.vocab import Voc
-
- 
-
+import ptkn.structure.vocab import Voc
 
 def read_embedding(filename, skip_lines=0):
     ''' Read embedding from stanford glove file
@@ -42,6 +36,7 @@ def read_embedding(filename, skip_lines=0):
             word = l_split[0]
             voc.addWord(word)
     return embs, voc
+
 
 def add_embedding(input_filename, output_filename, wordlist=[]):
     '''Add new word in input_voc, output_voc, wordlist with its random embedding

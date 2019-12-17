@@ -1,12 +1,13 @@
 import re
+import math
 
 from ptkn.dataset.math.mwp import MathWordProblem
 
-number_prefix = "NUMBER"
-unknown_suffix = "x"
+NUMBER_PREFIX = "NUMBER_"
+UNKNOWN_NUMBER_LIST = ["X", "Y", "Z", "A", "B", "C"]
+SIMPLE_OPERATOR_LIST = ["=", "+", "-", "*", "/", "(", ")"]
 
-
-def extract_question_number(question):
+def extract_number_from_question(question):
     """Generate question template from original question,
     including changing the number into number[x] format.
     从原始问题修改数字为number[x]的形式，并生成问题模板。
@@ -21,59 +22,87 @@ def extract_question_number(question):
     variable_number_dict = {}
     for word in words:
         # print(word)
-        if _is_operand(word) and word not in number_variable_dict:
-            variable = number_prefix + str(index)
-            number_variable_dict[word] = variable
-            variable_number_dict[variable] = word
-            index += 1
-            words[start] = variable
+        if _is_number(word):
+            if word not in number_variable_dict:
+                variable = NUMBER_PREFIX + str(index)
+                number_variable_dict[word] = variable
+                variable_number_dict[variable] = word
+                index += 1
+                words[start] = variable
+            else:
+                variable = number_variable_dict[word]
+                words[start] = variable
         start += 1
     question_template = " ".join(words)
     return question_template, number_variable_dict, variable_number_dict
 
 
-def get_equations_template(equations, number_variable_dict):
+def get_equations_template(equations, number_variable_dict, variable_number_dict=None):
     """Replace the numbers in equation to variables according to
     given number_variable_dict.
     根据number_variable_dict结构，将方程中的数字替换为对应的变量。
 
     :param equations:
     :param number_variable_dict:
+    :param variable_number_dict:
     :return:
     """
     equations_template = []
     for equation in equations:
-        words = equation.split(" ")
+        words = split_equation(equation)
         start = 0
         for word in words:
-            if _is_operand(word):    # 1. if it is an operand. 如果是操作数。
-                if word in number_variable_dict:
+            if _is_number(word):    # 1. if it is an number. 如果是操作数。
+                if word in number_variable_dict:  # 如果操作数在字典（从问题中抽取的）中
                     words[start] = number_variable_dict[word]
-                else:
+                else:                             # 如果操作数不在字典中，则遍历字典判断是否值相等
                     _found_variable= None
                     for number in number_variable_dict.keys():
-                        if _number_match(word, number):
+                        if _is_equal(word, number):
                             _found_variable = number_variable_dict[number]
                             break
                     if _found_variable is not None:
                         words[start] = _found_variable
                     else:
-                        raise Exception("equation " + equation +
+                        raise Exception("Equation " + equation +
                                         " contains numbers which are not indexed")
             elif _is_operator(word):  # 2. If it is an operator. 如果是操作符。
-                continue
+                words[start] = word
             else:                     # 3. Otherwise, it is variable. 如果是其他，则默认为变量。
-                words[start] = number_prefix + word
+                for unknown_number in UNKNOWN_NUMBER_LIST:
+                    number_cur = NUMBER_PREFIX + unknown_number
+                    if number_cur not in number_variable_dict:
+                        words[start] = number_cur
+                        number_variable_dict[word] = number_cur
+                        if variable_number_dict is not None:
+                            variable_number_dict[number_cur] = word
+                        break
             start += 1
         equation_template = " ".join(words)
         equations_template.append(equation_template)
     return equations_template
 
 
+def split_equation(equation):
+    """
+    将公式 分割成 词（操作数和操作符）的序列
+    :param equation:
+    :return:
+    """
+    equation = equation.strip()
+    for simple_operator in SIMPLE_OPERATOR_LIST:
+        equation = equation.replace(simple_operator, " " + simple_operator + " ")
+    equation = equation.replace("  ", " ")
+    words = equation.split(" ")
+    return words
+
+
 def recover_equations(equations, variable_number_dict):
     """
     根据variable_number_dict，将方程中的变量替换为对应的数字。
 
+    :param equations:
+    :param variable_number_dict:
     :return:
     """
     equations_answer = []
@@ -83,15 +112,15 @@ def recover_equations(equations, variable_number_dict):
         for word in words:
             if word in variable_number_dict:      # 1. If word is an variable, 如果词在变量-数值词典里。
                 words[start] = variable_number_dict[word]
-
-            elif word.startswith(number_prefix):  # 2. If word是待求解变量，
-                words[start] = word.replace(number_prefix, "")
+            elif word.startswith(NUMBER_PREFIX):  # 2. If word是待求解变量，
+                words[start] = word.replace(NUMBER_PREFIX, "")
             start += 1
         equation_answer = " ".join(words)
         equations_answer.append(equation_answer)
+    return equations_answer
 
 
-def _is_operand(s):
+def _is_number(s):
     """
     determine whether s is an operand
     :param s:
@@ -137,14 +166,16 @@ def _is_operator(s):
     :param s:
     :return:
     """
-    simple_operator_list = ["=", "+", "-", "*", "/"]
-    if s in simple_operator_list:
+    if s in SIMPLE_OPERATOR_LIST:
         return True
     else:
         return False
 
 
-def _number_match(number, word):
+def _is_equal(number, word):
+    if _is_numeric(number) and _is_numeric(word):
+        if math.isclose(float(number), float(word)):
+            return True
     return False
 
 
@@ -176,7 +207,7 @@ def _test_is_fraction():
 
 
 def _test_equation_template():
-    filename = r"D:\dataset\MaWPS\AllWithEquations.json"
+    filename = r"D:\dataset\MaWPS\AllWithEquations-modified.json"
     if filename is not None and len(filename) > 0:
         alg = MathWordProblem()
         alg.read_mawps(filename)
@@ -186,13 +217,14 @@ def _test_equation_template():
         print("question number:", question_number)
         for i in range(question_number):
             index = index_list[i]
+            print(index)
             question = question_list[i]
             equations = equations_list[i]
             solutions = solutions_list[i]
             alignments = alignments_list[i]
             lqueryvars = lqueryvars_list[i]
             print("question: ", question)
-            question_template, number_variable_dict, variable_number_dict = extract_question_number(question)
+            question_template, number_variable_dict, variable_number_dict = extract_number_from_question(question)
             print("question_template: ", question_template)
             print("number_variable_dict: ", number_variable_dict)
             print("variable_number_dict: ", variable_number_dict)
@@ -201,8 +233,13 @@ def _test_equation_template():
             print("equations: ", equations_template)
             new_equations = recover_equations(equations_template, variable_number_dict)
             print("new_equations: ", new_equations)
-            if i == 0:
-                break
+            for i in range(len(equations)):
+                equation = equations[i]
+                if i < len(new_equations):
+                    new_equation = new_equations[i]
+                    if equation.strip() != new_equation:
+                        print(equation + " != " + new_equation)
+
 
 
 if __name__ == "__main__":
