@@ -2,7 +2,7 @@
 
 ## Contents
 
-### math word solver
+### math word problem solver
 
 
 #### AI2
